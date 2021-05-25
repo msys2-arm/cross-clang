@@ -36,10 +36,11 @@ _real_package() {
            "${MINGW_PACKAGE_PREFIX}-llvm=${pkgver}-${pkgrel}"
            "${MINGW_PACKAGE_PREFIX}-lld=${pkgver}-${pkgrel}"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-compiler-rt=${pkgver}-${pkgrel}"
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-crt"
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-headers"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++=${pkgver}-${pkgrel}"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libunwind=${pkgver}-${pkgrel}")
 
-  local _fullarch="${_cross_arches[${_pfx}]}"
   local _resourcever="$(basename "$(clang -print-resource-dir)")"
   mkdir -p "${pkgdir}/${MINGW_PREFIX}/bin"
   for tool in as cc clang gas gcc; do
