@@ -6,12 +6,12 @@ declare -g -A _cross_arches=(
 _realname=compiler-rt
 pkgbase=mingw-w64-cross-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-cross-${_realname}")
-pkgver=17.0.6
+pkgver=18.1.1
 pkgrel=1
 arch=("any")
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
 url="https://llvm.org/"
-license=("custom:Apache 2.0 with LLVM Exception")
+license=("spdx:Apache-2.0 WITH LLVM-exception")
 makedepends=("${MINGW_PACKAGE_PREFIX}-clang"
              "${MINGW_PACKAGE_PREFIX}-cmake>=3.4.3"
              "${MINGW_PACKAGE_PREFIX}-ninja")
@@ -27,9 +27,9 @@ _url=https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}
 source=("${_url}/${_realname}-${pkgver}.src.tar.xz"{,.sig}
         "${_url}/cmake-${pkgver}.src.tar.xz"{,.sig})
 
-sha256sums=('11b8d09dcf92a0f91c5c82defb5ad9ff4acf5cf073a80c317204baa922d136b4'
+sha256sums=('037b1fbbc6ea90c9ef299caab8a751b435ca6ede2d1972db15b30646636ee057'
             'SKIP'
-            '807f069c54dc20cb47b21c1f6acafdd9c649f3ae015609040d6182cab01140f4'
+            '5308023d1c1e9feb264c14f58db35c53061123300a7eb940364f46d574c8b2d6'
             'SKIP')
 validpgpkeys=('B6C8F98282B944E3B0D5C2530FC3042E345AD05D'  # Hans Wennborg, Google.
               '474E22316ABF4785A88C6E8EA2C794A986419D8A'  # Tom Stellard
