@@ -6,7 +6,7 @@ declare -g -A _cross_arches=(
 _realname=compiler-rt
 pkgbase=mingw-w64-cross-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-cross-${_realname}")
-pkgver=15.0.7
+pkgver=16.0.1
 pkgrel=1
 arch=("any")
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -27,9 +27,9 @@ _url=https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}
 source=("${_url}/${_realname}-${pkgver}.src.tar.xz"{,.sig}
         "${_url}/cmake-${pkgver}.src.tar.xz"{,.sig})
 
-sha256sums=('353832c66cce60931ea0413b3c071faad59eefa70d02c97daa8978b15e4b25b7'
+sha256sums=('ce77091b5169bb2bd37002cf9b4d0cb7c085c17c9ccc6739d450ff258da3f8f0'
             'SKIP'
-            '8986f29b634fdaa9862eedda78513969fe9788301c9f2d938f4c10a3e7a3e7ea'
+            'f7b070b0ea71251c81b1a3dcdc6ccd28f59615e3e386c461456c5c246406acdc'
             'SKIP')
 validpgpkeys=('B6C8F98282B944E3B0D5C2530FC3042E345AD05D'  # Hans Wennborg, Google.
               '474E22316ABF4785A88C6E8EA2C794A986419D8A'  # Tom Stellard
@@ -38,7 +38,7 @@ validpgpkeys=('B6C8F98282B944E3B0D5C2530FC3042E345AD05D'  # Hans Wennborg, Googl
 prepare() {
   cd "${srcdir}"
   rm -rf cmake
-  mv "cmake-${pkgver}.src" cmake
+  mv cmake-$pkgver.src cmake
 }
 
 build() {
@@ -71,9 +71,10 @@ build() {
         -DCMAKE_C_COMPILER="${MINGW_PREFIX}/bin/clang.exe" \
         -DCMAKE_CXX_COMPILER="${MINGW_PREFIX}/bin/clang++.exe" \
         -DCMAKE_RANLIB="${MINGW_PREFIX}/bin/llvm-ranlib.exe" \
-        -DCOMPILER_RT_BUILD_{LIBFUZZER,MEMPROF,PROFILE,SANITIZERS,XRAY}=OFF \
+        -DCOMPILER_RT_BUILD_{LIBFUZZER,MEMPROF,ORC,PROFILE,SANITIZERS,XRAY}=OFF \
         -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
         -DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON \
+	-DLLVM_DIR="${MINGW_PREFIX}/lib/cmake/llvm" \
         ../${_realname}-$pkgver.src
       cmake --build .
     fi
