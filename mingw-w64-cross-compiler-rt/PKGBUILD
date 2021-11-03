@@ -6,7 +6,7 @@ declare -g -A _cross_arches=(
 _realname=compiler-rt
 pkgbase=mingw-w64-cross-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-cross-${_realname}")
-pkgver=15.0.1
+pkgver=15.0.2
 pkgrel=1
 arch=("any")
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -27,10 +27,10 @@ _url=https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}
 source=("${_url}/${_realname}-${pkgver}.src.tar.xz"{,.sig}
         "${_url}/cmake-${pkgver}.src.tar.xz"{,.sig})
 
-sha256sums=('af9f1c2be8596bb76f712c29c77e2c18cfa7d0f94dbca5d396d757342ece2e1b'
+sha256sums=('5af52bd1505ad3ed73cf6565357e58ca01504e0d953f37f61237da11c70bc870'
             'SKIP'
-	    'a660d1b7d4d2ef9759de6ad360d5fa9eed3625a6548068a97df2dd706edf2dd0'
-	    'SKIP')
+            'c47c4d54bb311298abe97e7d8e8185eaa8d71feb6d85e5e38356a70679e5c61e'
+            'SKIP')
 validpgpkeys=('B6C8F98282B944E3B0D5C2530FC3042E345AD05D'  # Hans Wennborg, Google.
               '474E22316ABF4785A88C6E8EA2C794A986419D8A'  # Tom Stellard
               'D574BD5D1D0E98895E3BF90044F2485E45D59042') # Tobias Hieta
