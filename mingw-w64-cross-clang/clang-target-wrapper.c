@@ -64,6 +64,10 @@ int _tmain(int argc, TCHAR* argv[]) {
     // If changing this wrapper, change clang-target-wrapper.sh accordingly.
     if (!_tcscmp(exe, _T("clang++")) || !_tcscmp(exe, _T("g++")) || !_tcscmp(exe, _T("c++")))
         exec_argv[arg++] = _T("--driver-mode=g++");
+    else if (!_tcscmp(exe, _T("c99")))
+        exec_argv[arg++] = _T("-std=c99");
+    else if (!_tcscmp(exe, _T("c11")))
+        exec_argv[arg++] = _T("-std=c11");
 
     if (target_os && !_tcscmp(target_os, _T("mingw32uwp"))) {
         // the UWP target is for Windows 10
