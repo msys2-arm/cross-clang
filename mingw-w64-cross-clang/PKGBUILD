@@ -9,7 +9,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=13.0.1
+pkgver=14.0.0
 pkgrel=1
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -25,7 +25,7 @@ source=("native-wrapper.h"
         "windres-wrapper.c")
 sha256sums=('c9758342cb926605cd1b30ccb92e6b47f5cc930a15904462e0445959f9be49c1'
             'd6bafc72309860e7a45a91047b5e4c4519b52d6d685069f77094ef6cc09385e5'
-            '10587323d163abe0ca1f094cba1c991ef8bbed71cde7a9b94ddbe36ae3e2868f'
+            'f5a03acc5fb0536a59b3bb5c8ff967604311d7e44182c8f75a0cf1c732b05b6c'
             '2adee7d81d71a167d28fc508e8b3427f63e7c064f08ca63fe330476e8ae4a2c8'
             'b121e52bc752396f887e8e6a97138117fc9c2ee4f7efbe9f5ca2be4f451b6f45')
 build() {
