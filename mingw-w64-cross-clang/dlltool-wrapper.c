@@ -21,29 +21,38 @@
 #ifndef DEFAULT_TARGET
 #define DEFAULT_TARGET "x86_64-w64-mingw32"
 #endif
-#ifndef SYSROOT
-#define SYSROOT "/clang64"
-#endif
 
 int _tmain(int argc, TCHAR* argv[]) {
     const TCHAR *dir;
     const TCHAR *target;
     split_argv(argv[0], &dir, NULL, &target, NULL);
     if (!target)
-        target = _T(DEFAULT_TARGET);
+        target = _tcsdup(_T(DEFAULT_TARGET));
+    TCHAR *dash = _tcschr(target, '-');
+    if (dash)
+        *dash = '\0';
 
-    int max_arg = argc + 4;
+    int max_arg = argc + 2;
     const TCHAR **exec_argv = malloc((max_arg + 1) * sizeof(*exec_argv));
     int arg = 0;
-    exec_argv[arg++] = concat(dir, _T("llvm-windres"));
-    exec_argv[arg++] = _T("--target");
-    exec_argv[arg++] = target;
-    exec_argv[arg++] = _T("--preprocessor-arg");
-    /* something is eating backslashes */
-    TCHAR * p = (TCHAR *)dir;
-    while ((p = _tcschr(p, _T('\\'))))
-        *p = _T('/');
-    exec_argv[arg++] = concat(_T("--sysroot="), concat(dir, _T("../..") _T(SYSROOT)));
+    exec_argv[arg++] = concat(dir, _T("llvm-dlltool"));
+
+    if (!_tcscmp(target, _T("i686"))) {
+        exec_argv[arg++] = _T("-m");
+        exec_argv[arg++] = _T("i386");
+    } else if (!_tcscmp(target, _T("x86_64"))) {
+        exec_argv[arg++] = _T("-m");
+        exec_argv[arg++] = _T("i386:x86-64");
+    } else if (!_tcscmp(target, _T("armv7"))) {
+        exec_argv[arg++] = _T("-m");
+        exec_argv[arg++] = _T("arm");
+    } else if (!_tcscmp(target, _T("aarch64"))) {
+        exec_argv[arg++] = _T("-m");
+        exec_argv[arg++] = _T("arm64");
+    } else {
+        _ftprintf(stderr, _T("Arch "TS" unsupported\n"), target);
+        return 1;
+    }
 
     for (int i = 1; i < argc; i++)
         exec_argv[arg++] = argv[i];

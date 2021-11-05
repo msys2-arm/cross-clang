@@ -5,58 +5,84 @@ declare -g -A _cross_arches=(
 )
 pkgbase=mingw-w64-cross-clang
 pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
-             if [[ "${_pfx}" != "${MINGW_PREFIX}" ]]; then
+             if [[ "${_cross_arches[$_pfx]%%-*}" != "${CARCH}" ]]; then
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=12.0.0
-pkgrel=5
+pkgver=13.0.0
+pkgrel=1
 arch=('any')
-mingw_arch=('clang64' 'clang32' 'clangarm64')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
 license=('ISC')
-makedepends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}-${pkgrel}")
+makedepends=("${MINGW_PACKAGE_PREFIX}-gcc")
+# this is unused but necessary to make CI happy
+depends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}"
+         "${MINGW_PACKAGE_PREFIX}-cross-compiler-rt=${pkgver}")
 source=("native-wrapper.h"
-        "windres-wrapper.c"
-        "windres.LICENSE")
+        "llvm-wrapper.c"
+        "clang-target-wrapper.c"
+        "dlltool-wrapper.c"
+        "windres-wrapper.c")
 sha256sums=('c9758342cb926605cd1b30ccb92e6b47f5cc930a15904462e0445959f9be49c1'
-            'f41a37514ccfaefb7220bd4b01c42344a7b27b093f58e460c352eb46884b7e18'
-            '07368fd2805f45f706a5f63051e161989e97bd150731ee88976a04edd8546d54')
+            'd6bafc72309860e7a45a91047b5e4c4519b52d6d685069f77094ef6cc09385e5'
+            '10587323d163abe0ca1f094cba1c991ef8bbed71cde7a9b94ddbe36ae3e2868f'
+            '2adee7d81d71a167d28fc508e8b3427f63e7c064f08ca63fe330476e8ae4a2c8'
+            'b121e52bc752396f887e8e6a97138117fc9c2ee4f7efbe9f5ca2be4f451b6f45')
 build() {
   CC=${CC:-cc}
   cd "${srcdir}"
+
+  [[ -d "build-${MSYSTEM}" ]] && rm -rf "build-${MSYSTEM}"
+  mkdir "build-${MSYSTEM}" && cd "build-${MSYSTEM}"
+
   for _pfx in "${!_cross_arches[@]}"; do
-    if [[ "${_pfx}" != "${MINGW_PREFIX}" ]]; then
-      $CC $CFLAGS $LDFLAGS -DDEFAULT_TARGET=\"${_cross_arches[$_pfx]}\" ../windres-wrapper.c -o ${_cross_arches[$_pfx]}-windres.exe
+    if [[ "${_cross_arches[$_pfx]%%-*}" != "${CARCH}" ]]; then
+      MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
+      $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../llvm-wrapper.c -o ${_cross_arches[$_pfx]}-llvm-wrapper.exe
+      MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
+      $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../clang-target-wrapper.c -o ${_cross_arches[$_pfx]}-clang.exe
+      MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
+      $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../dlltool-wrapper.c -o ${_cross_arches[$_pfx]}-dlltool.exe
+      MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
+      $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../windres-wrapper.c -o ${_cross_arches[$_pfx]}-windres.exe
     fi
   done
 }
 _real_package() {
   local _pfx="@@@PREFIX@@@"
-  depends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}-${pkgrel}"
-           "${MINGW_PACKAGE_PREFIX}-llvm=${pkgver}-${pkgrel}"
-           "${MINGW_PACKAGE_PREFIX}-lld=${pkgver}-${pkgrel}"
-           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-compiler-rt=${pkgver}-${pkgrel}"
+  depends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}"
+           "${MINGW_PACKAGE_PREFIX}-cross-compiler-rt=${pkgver}"
+           "${MINGW_PACKAGE_PREFIX}-llvm=${pkgver}"
+           "${MINGW_PACKAGE_PREFIX}-lld=${pkgver}"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-crt"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-headers"
-           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++=${pkgver}-${pkgrel}"
-           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libunwind=${pkgver}-${pkgrel}")
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++=${pkgver}"
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libunwind=${pkgver}")
 
-  local _resourcever="$(basename "$(clang -print-resource-dir)")"
-  mkdir -p "${pkgdir}/${MINGW_PREFIX}/bin"
-  for tool in as cc clang gas gcc; do
-    printf "#!/bin/bash\n\n${MINGW_PREFIX}/bin/clang -target ${_cross_arches[${_pfx}]} --sysroot=${_pfx} -resource-dir=${_pfx}/lib/clang/${_resourcever} \"\$@\"" > "${pkgdir}/${MINGW_PREFIX}/bin/${_cross_arches[${_pfx}]}-${tool}"
+  cd "${srcdir}/build-${MSYSTEM}"
+
+  mkdir -p "${pkgdir}${MINGW_PREFIX}/bin"
+  local _tool
+  # c11 c99 ?
+  for _tool in as c++ cc clang clang++ g++ gcc; do
+    cp -f ${_cross_arches[$_pfx]}-clang.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
   done
-  for tool in c++ clang++ g++; do
-    printf "#!/bin/bash\n\n${MINGW_PREFIX}/bin/clang++ -target ${_cross_arches[${_pfx}]} --sysroot=${_pfx} -resource-dir=${_pfx}/lib/clang/${_resourcever} \"\$@\"" > "${pkgdir}/${MINGW_PREFIX}/bin/${_cross_arches[${_pfx}]}-${tool}"
+  for _tool in addr2line ar ranlib nm objcopy readelf strings strip; do
+    cp -f ${_cross_arches[$_pfx]}-llvm-wrapper.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
   done
-  cp "${srcdir}/${_cross_arches[${_pfx}]}-windres.exe" "${pkgdir}/${MINGW_PREFIX}/bin/${_cross_arches[${_pfx}]}-windres.exe"
-  mkdir -p "${pkgdir}${MINGW_PREFIX}/share/licenses/${_cross_arches[${_pfx}]}-windres"
-  cp "${srcdir}/windres.LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_cross_arches[${_pfx}]}-windres/LICENSE"
+  # windres and dlltool can't use llvm-wrapper, as that loses the original
+  # target arch prefix
+  for _tool in dlltool windres; do
+    cp -f ${_cross_arches[$_pfx]}-${_tool}.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
+  done
+
+  mkdir -p "${pkgdir}${MINGW_PREFIX}/share/licenses/${_cross_arches[${_pfx}]}-cross-clang"
+  sed -ne '1,/^ \*\//p' "${srcdir}/native-wrapper.h" > "${pkgdir}${MINGW_PREFIX}/share/licenses/${_cross_arches[${_pfx}]}-cross-clang/LICENSE"
 }
 
 _func="$(declare -f "_real_package")"
 for _pfx in "${!_cross_arches[@]}"; do
-  if [[ "${_pfx}" != "${MINGW_PREFIX}" ]]; then
+  if [[ "${_cross_arches[$_pfx]%%-*}" != "${CARCH}" ]]; then
     _func2="${_func//@@@PREFIX@@@/${_pfx}}"
     eval "${_func2/#_real_package/package_${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}}"
   fi
