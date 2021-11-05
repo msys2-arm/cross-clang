@@ -15,7 +15,7 @@ arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
 license=('ISC')
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc")
-# this is unused but necessary to make CI happy
+# this is unused in the packages but necessary to make CI happy
 depends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}"
          "${MINGW_PACKAGE_PREFIX}-cross-compiler-rt=${pkgver}")
 source=("native-wrapper.h"
@@ -57,6 +57,7 @@ _real_package() {
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-crt"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-headers"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++=${pkgver}"
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++abi=${pkgver}"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libunwind=${pkgver}")
 
   cd "${srcdir}/build-${MSYSTEM}"
