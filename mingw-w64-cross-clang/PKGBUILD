@@ -9,12 +9,12 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=13.0.0
+pkgver=13.0.1
 pkgrel=1
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
 license=('ISC')
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc")
 # this is unused in the packages but necessary to make CI happy
 depends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}"
          "${MINGW_PACKAGE_PREFIX}-cross-compiler-rt=${pkgver}")
