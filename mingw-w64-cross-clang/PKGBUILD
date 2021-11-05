@@ -9,7 +9,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=18.1.6
+pkgver=18.1.8
 pkgrel=1
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -24,7 +24,7 @@ source=("native-wrapper.h"
         "clang-scan-deps-wrapper.c"
         "dlltool-wrapper.c"
         "windres-wrapper.c")
-sha256sums=('58d066367c55a2300fd8205955fc77f726df596c77cb0906c3e05b93a0ae6aef'
+sha256sums=('c9b63d78a6e45b7ececfcc354d84ae4d452df8afc738c151f3aa37b843f6a338'
             'b807f9b7ce3c205afc61f917a19d18e007b994b4bb2e8042f0db65976e96a4ec'
             'f7dad39312d3b2cdf42f6d8968f624cc9e3d2af4d5d0dfdae8e807a887fccb18'
             'f9c8223a1b9813de4d09f914121ec874568296cf0bf65569e1802b66e784de51'

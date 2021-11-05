@@ -58,7 +58,11 @@ typedef char TCHAR;
 #endif
 
 #ifdef _WIN32
-static inline TCHAR *escape(const TCHAR *str) {
+static inline const TCHAR *escape(const TCHAR *str) {
+    // If we don't need to escape anything, just return the input string
+    // as is.
+    if (!_tcschr(str, ' ') && !_tcschr(str, '"'))
+        return str;
     TCHAR *out = malloc((_tcslen(str) * 2 + 3) * sizeof(*out));
     TCHAR *ptr = out;
     int i;
@@ -85,15 +89,50 @@ static inline TCHAR *escape(const TCHAR *str) {
     return out;
 }
 
+static inline TCHAR *concat(const TCHAR *prefix, const TCHAR *suffix);
+
+static TCHAR *make_response_file(const TCHAR **argv) {
+    if (!argv[1])
+        return NULL;
+    TCHAR *temp_path = malloc(MAX_PATH * sizeof(*temp_path));
+    if (GetTempPath(MAX_PATH, temp_path) == 0)
+        return NULL;
+    TCHAR *rsp_file = malloc(MAX_PATH * sizeof(*rsp_file));
+    if (GetTempFileName(temp_path, _T("ctw"), 0, rsp_file) == 0)
+        return NULL;
+
+    FILE *f = _tfopen(rsp_file, _T("w, ccs=UNICODE"));
+    for (int i = 1; argv[i]; i++)
+        _ftprintf(f, _T(TS"\n"), argv[i]);
+    fclose(f);
+    argv[1] = escape(concat(_T("@"), rsp_file));
+    argv[2] = NULL;
+    return rsp_file;
+}
+
 static inline int _tspawnvp_escape(int mode, const TCHAR *filename, const TCHAR * const *argv) {
     int num_args = 0;
     while (argv[num_args])
         num_args++;
     const TCHAR **escaped_argv = malloc((num_args + 1) * sizeof(*escaped_argv));
-    for (int i = 0; argv[i]; i++)
+    int total = 0;
+    for (int i = 0; argv[i]; i++) {
         escaped_argv[i] = escape(argv[i]);
+        total += 1 + _tcslen(escaped_argv[i]);
+    }
     escaped_argv[num_args] = NULL;
-    return _tspawnvp(mode, filename, escaped_argv);
+    const TCHAR *temp_file = NULL;
+    if (total > 32000) {
+        // If we are getting close to the limit, write the arguments to
+        // a temporary response file.
+        temp_file = make_response_file(escaped_argv);
+        if (temp_file)
+            total = _tcslen(escaped_argv[0]) + _tcslen(escaped_argv[1]) + 2;
+    }
+    int ret = _tspawnvp(mode, filename, escaped_argv);
+    if (temp_file)
+        DeleteFile(temp_file);
+    return ret;
 }
 #else
 static inline int _tcsicmp(const TCHAR *a, const TCHAR *b) {
