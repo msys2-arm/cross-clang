@@ -66,7 +66,7 @@ _real_package() {
   mkdir -p "${pkgdir}${MINGW_PREFIX}/bin"
   local _tool
   # c11 c99 ?
-  for _tool in as c++ cc clang clang++; do
+  for _tool in as c++ cc clang clang++ gcc g++; do
     cp -f ${_cross_arches[$_pfx]}-clang.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
   done
   for _tool in addr2line ar ranlib nm objcopy readelf strings strip; do
