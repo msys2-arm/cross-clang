@@ -58,7 +58,8 @@ _real_package() {
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-headers"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++=${pkgver}"
            "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libc++abi=${pkgver}"
-           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libunwind=${pkgver}")
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-libunwind=${pkgver}"
+           "mingw-w64-clang-${_cross_arches[@@@PREFIX@@@]%%-*}-winpthreads-git")
 
   cd "${srcdir}/build-${MSYSTEM}"
 
