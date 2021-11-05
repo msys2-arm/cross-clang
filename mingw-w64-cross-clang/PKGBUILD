@@ -9,7 +9,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=15.0.2
+pkgver=15.0.3
 pkgrel=1
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -23,9 +23,9 @@ source=("native-wrapper.h"
         "clang-target-wrapper.c"
         "dlltool-wrapper.c"
         "windres-wrapper.c")
-sha256sums=('c9758342cb926605cd1b30ccb92e6b47f5cc930a15904462e0445959f9be49c1'
-            'd6bafc72309860e7a45a91047b5e4c4519b52d6d685069f77094ef6cc09385e5'
-            '8e50e7b19ee3c13d1a4ad59d3fc87ef753962795f4064d048984680a1a3484f6'
+sha256sums=('d7ab6fbae812b7b9b613e39d3c4c06b7f9bb002d5146e9536559d1975f6ccae9'
+            'b807f9b7ce3c205afc61f917a19d18e007b994b4bb2e8042f0db65976e96a4ec'
+            '9eb8bc50327e3194688179fd217d6f00e46c0f167e962db7549bef9d3fde2808'
             '2adee7d81d71a167d28fc508e8b3427f63e7c064f08ca63fe330476e8ae4a2c8'
             'b121e52bc752396f887e8e6a97138117fc9c2ee4f7efbe9f5ca2be4f451b6f45')
 build() {
@@ -68,7 +68,7 @@ _real_package() {
   for _tool in as c++ cc clang clang++ gcc g++; do
     cp -f ${_cross_arches[$_pfx]}-clang.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
   done
-  for _tool in addr2line ar ranlib nm objcopy readelf strings strip; do
+  for _tool in addr2line ar ranlib nm objcopy readelf strings strip llvm-ar llvm-ranlib; do
     cp -f ${_cross_arches[$_pfx]}-llvm-wrapper.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
   done
   # windres and dlltool can't use llvm-wrapper, as that loses the original
