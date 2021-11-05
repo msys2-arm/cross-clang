@@ -9,7 +9,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=17.0.2
+pkgver=17.0.4
 pkgrel=1
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
