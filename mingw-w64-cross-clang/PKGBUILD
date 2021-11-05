@@ -9,7 +9,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
                echo "${MINGW_PACKAGE_PREFIX}-cross-clang-${_cross_arches[$_pfx]%%-*}"
              fi
            done))
-pkgver=18.1.4
+pkgver=18.1.5
 pkgrel=1
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -21,11 +21,13 @@ depends=("${MINGW_PACKAGE_PREFIX}-clang=${pkgver}"
 source=("native-wrapper.h"
         "llvm-wrapper.c"
         "clang-target-wrapper.c"
+        "clang-scan-deps-wrapper.c"
         "dlltool-wrapper.c"
         "windres-wrapper.c")
-sha256sums=('30f22023059f76113de774aa3b708df6a5b604f51d2ef1452a82bcff1b9c3fca'
+sha256sums=('58d066367c55a2300fd8205955fc77f726df596c77cb0906c3e05b93a0ae6aef'
             'b807f9b7ce3c205afc61f917a19d18e007b994b4bb2e8042f0db65976e96a4ec'
-            '9eb8bc50327e3194688179fd217d6f00e46c0f167e962db7549bef9d3fde2808'
+            'f7dad39312d3b2cdf42f6d8968f624cc9e3d2af4d5d0dfdae8e807a887fccb18'
+            'f9c8223a1b9813de4d09f914121ec874568296cf0bf65569e1802b66e784de51'
             '2adee7d81d71a167d28fc508e8b3427f63e7c064f08ca63fe330476e8ae4a2c8'
             'b121e52bc752396f887e8e6a97138117fc9c2ee4f7efbe9f5ca2be4f451b6f45')
 build() {
@@ -41,6 +43,8 @@ build() {
       $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../llvm-wrapper.c -o ${_cross_arches[$_pfx]}-llvm-wrapper.exe
       MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
       $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../clang-target-wrapper.c -o ${_cross_arches[$_pfx]}-clang.exe
+      MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
+      $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../clang-scan-deps-wrapper.c -o ${_cross_arches[$_pfx]}-clang-scan-deps.exe
       MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
       $CC $CPPFLAGS $CFLAGS $LDFLAGS -municode -DDEFAULT_TARGET="\"${_cross_arches[$_pfx]}\"" -DSYSROOT="\"${_pfx}\"" ../dlltool-wrapper.c -o ${_cross_arches[$_pfx]}-dlltool.exe
       MSYS2_ARG_CONV_EXCL="-DSYSROOT=" \
@@ -73,7 +77,7 @@ _real_package() {
   done
   # windres and dlltool can't use llvm-wrapper, as that loses the original
   # target arch prefix
-  for _tool in dlltool windres; do
+  for _tool in clang-scan-deps dlltool windres; do
     cp -f ${_cross_arches[$_pfx]}-${_tool}.exe "${pkgdir}${MINGW_PREFIX}/bin/${_cross_arches[$_pfx]}-${_tool}.exe"
   done
 
