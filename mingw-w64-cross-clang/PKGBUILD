@@ -1,6 +1,5 @@
 declare -g -A _cross_arches=(
   ["/clang64"]="x86_64-w64-mingw32"
-  ["/clang32"]="i686-w64-mingw32"
   ["/clangarm64"]="aarch64-w64-mingw32"
 )
 pkgbase=mingw-w64-cross-clang
@@ -12,7 +11,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
 pkgver=19.1.4
 pkgrel=1
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 license=('ISC')
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc")
 # this is unused in the packages but necessary to make CI happy
