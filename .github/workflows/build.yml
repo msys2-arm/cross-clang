@@ -1,0 +1,138 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: UCRT64, runner: windows-2022 },
+          { msystem: CLANG64, runner: windows-2022 },
+          { msystem: MINGW64, runner: windows-2022 },
+          { msystem: MINGW32, runner: windows-2022 },
+          { msystem: CLANGARM64, runner: ['Windows', 'ARM64', 'CI'] }
+        ]
+    timeout-minutes: 4320
+    name: ${{ matrix.msystem }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Get CPU Name
+        run : |
+          Get-CIMInstance -Class Win32_Processor | Select-Object -Property Name
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          install: base-devel
+          update: true
+          release: ${{ runner.arch != 'ARM64' }}
+          location: 'D:\M'
+
+      - name: Add staging repo
+        shell: msys2 {0}
+        run: |
+          cp /etc/pacman.conf /etc/pacman.conf.bak
+          grep -qFx '[staging]' /etc/pacman.conf || sed -i '/^# \[staging\]/,/^$/ s|^# ||g' /etc/pacman.conf
+
+      - name: Update using staging
+        run: |
+          msys2 -c 'pacman --noconfirm -Suuy'
+          msys2 -c 'pacman --noconfirm -Suu'
+
+      - name: CI-Build
+        shell: msys2 {0}
+        id: build
+        run: |
+          unset VCPKG_ROOT
+          mkdir localrepo
+          repo-add localrepo/ci.db.tar.gz
+          sed -i '1s|^|[ci]\nServer = file://'"$PWD"'/localrepo/\nSigLevel = Never\n|' /etc/pacman.conf
+          pacman -Sy
+          cd mingw-w64-cross-compiler-rt
+          ../fetch-validpgpkeys.sh
+          MINGW_ARCH=${{ matrix.msystem }} makepkg-mingw --noconfirm --noprogressbar --syncdeps --rmdeps --cleanbuild -f
+          if [[ "${MSYSTEM}" == "UCRT64" ]]; then
+            MINGW_ARCH=${{ matrix.msystem }} makepkg-mingw --noconfirm --noprogressbar --syncdeps --rmdeps --allsource
+          fi
+          repo-add ../localrepo/ci.db.tar.gz *.pkg.tar.*
+          cp *.pkg.tar.* ../localrepo
+          pacman -Sy
+          cd ../mingw-w64-cross-clang
+          MINGW_ARCH=${{ matrix.msystem }} makepkg-mingw --noconfirm --noprogressbar --syncdeps --rmdeps --cleanbuild -f
+          if [[ "${MSYSTEM}" == "UCRT64" ]]; then
+            MINGW_ARCH=${{ matrix.msystem }} makepkg-mingw --noconfirm --noprogressbar --syncdeps --rmdeps --allsource
+          fi
+
+      - name: "Upload binaries"
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.msystem }}-packages
+          path: |
+            mingw-w64-*/mingw-w64-*.pkg.tar.*
+            mingw-w64-*/mingw-w64-*.src.tar.*
+
+      - name: "Clean up runner"
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          msys2 -c 'mv -f /etc/pacman.conf.bak /etc/pacman.conf'
+          msys2 -c 'pacman --noconfirm -Suuy'
+          msys2 -c 'pacman --noconfirm -Suu'
+
+  update-repo:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: [build]
+    runs-on: windows-2022
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          update: true
+
+      - name: fetch repo
+        shell: msys2 {0} 
+        run: |
+          mkdir repo && cd repo
+          for f in cross-clang{.db,.files}{,.tar.zst}; do
+            curl --fail -L --retry 5 -o "$f" "https://github.com/$GITHUB_REPOSITORY/releases/download/repo/$f"
+          done
+
+      - name: update repo
+        shell: msys2 {0} 
+        run: |
+          cd repo
+          repo-add cross-clang.db.tar.zst $(find ../*-packages -name \*.pkg.tar.\*)
+
+      - name: "Upload binaries"
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo
+          path: 'repo/*'
+
+  upload:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: [update-repo]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Upload to repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload -R "${{ github.repository }}" repo $(find *-packages -name \*.tar.\*)
+          gh release upload -R "${{ github.repository }}" --clobber repo repo/*
