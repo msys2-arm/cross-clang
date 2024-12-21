@@ -19,6 +19,7 @@ jobs:
           persist-credentials: false
           repository: msys2/MINGW-packages
           path: MINGW-packages
+          sparse-checkout: mingw-w64-llvm
       - name: Run update
         run: |
           ./update.sh MINGW-packages/mingw-w64-llvm/PKGBUILD
