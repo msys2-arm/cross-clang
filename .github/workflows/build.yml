@@ -12,10 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { msystem: UCRT64, runner: windows-2022 },
-          { msystem: CLANG64, runner: windows-2022 },
-          { msystem: MINGW64, runner: windows-2022 },
-          { msystem: MINGW32, runner: windows-2022 },
+          { msystem: UCRT64, runner: windows-2025 },
+          { msystem: CLANG64, runner: windows-2025 },
+          { msystem: MINGW64, runner: windows-2025 },
+          { msystem: MINGW32, runner: windows-2025 },
           { msystem: CLANGARM64, runner: ['Windows', 'ARM64', 'CI'] }
         ]
     timeout-minutes: 4320
@@ -94,7 +94,7 @@ jobs:
   update-repo:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: [build]
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - uses: actions/download-artifact@v4
 
