@@ -2,6 +2,8 @@ name: build
 
 on:
   push:
+    paths:
+      - '*/PKGBUILD'
   pull_request:
 
 jobs:
