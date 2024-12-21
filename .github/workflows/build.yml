@@ -53,6 +53,7 @@ jobs:
         shell: msys2 {0}
         id: build
         run: |
+          export PACKAGER="CI (${GITHUB_REPOSITORY}/${GITHUB_SHA:0:8}/${GITHUB_RUN_ID})"
           unset VCPKG_ROOT
           mkdir localrepo
           repo-add localrepo/ci.db.tar.gz
