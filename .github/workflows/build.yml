@@ -16,7 +16,7 @@ jobs:
           { msystem: CLANG64, runner: windows-2025 },
           { msystem: MINGW64, runner: windows-2025 },
           { msystem: MINGW32, runner: windows-2025 },
-          { msystem: CLANGARM64, runner: ['Windows', 'ARM64', 'CI'] }
+          { msystem: CLANGARM64, runner: windows-11-arm }
         ]
     timeout-minutes: 4320
     name: ${{ matrix.msystem }}
@@ -35,8 +35,8 @@ jobs:
           msystem: ${{ matrix.msystem }}
           install: base-devel
           update: true
-          release: ${{ runner.arch != 'ARM64' }}
-          location: 'D:\M'
+          release: true
+          location: '\M'
 
       - name: Add staging repo
         shell: msys2 {0}
@@ -82,14 +82,6 @@ jobs:
           path: |
             mingw-w64-*/mingw-w64-*.pkg.tar.*
             mingw-w64-*/mingw-w64-*.src.tar.*
-
-      - name: "Clean up runner"
-        if: ${{ always() }}
-        continue-on-error: true
-        run: |
-          msys2 -c 'mv -f /etc/pacman.conf.bak /etc/pacman.conf'
-          msys2 -c 'pacman --noconfirm -Suuy'
-          msys2 -c 'pacman --noconfirm -Suu'
 
   update-repo:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
