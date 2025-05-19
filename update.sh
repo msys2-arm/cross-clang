@@ -29,4 +29,6 @@ IFS="|" read old_pkgver old_compiler_rt old_cmake < <(source mingw-w64-cross-com
 IFS="|" read new_pkgver new_compiler_rt new_cmake < <(source "$1" && getsums)
 
 sed -i -e "s|^pkgver=$old_pkgver|pkgver=$new_pkgver|" -e "s|'$old_compiler_rt'|'$new_compiler_rt'|" -e "s|'$old_cmake'|'$new_cmake'|" mingw-w64-cross-compiler-rt/PKGBUILD mingw-w64-cross-clang/PKGBUILD
-
+if [[ "${old_pkgver}" != "${new_pkgver}" ]]; then
+  sed -i -e 's|^pkgrel=[0-9]\+|pkgrel=1|' mingw-w64-cross-compiler-rt/PKGBUILD mingw-w64-cross-clang/PKGBUILD
+fi
