@@ -9,7 +9,7 @@ pkgname=($(for _pfx in "${!_cross_arches[@]}"; do
              fi
            done))
 pkgver=20.1.5
-pkgrel=1
+pkgrel=2
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 license=('ISC')
