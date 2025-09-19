@@ -9,15 +9,17 @@ function getsums() {
     return 2
   fi
 
-  local idx cmake compiler_rt
+  local idx cmake compiler_rt third_party
   for (( idx = 0; idx < ${#source[*]}; idx++ )); do
     if [[ "${source[$idx]}" == *cmake-*.src.tar.!(*.sig) ]]; then
       cmake="${sha256sums[$idx]}"
     elif [[ "${source[$idx]}" == *compiler-rt-*.src.tar.!(*.sig) ]]; then
       compiler_rt="${sha256sums[$idx]}"
+    elif [[ "${source[$idx]}" == *third-party-*.src.tar.!(*.sig) ]]; then
+      third_party="${sha256sums[$idx]}"
     fi
   done
-  echo "${pkgver}|${compiler_rt}|${cmake}"
+  echo "${pkgver}|${compiler_rt}|${cmake}|${third_party}"
 }
 
 if (( $# < 1 )); then
@@ -25,10 +27,10 @@ if (( $# < 1 )); then
   exit 1
 fi
 
-IFS="|" read old_pkgver old_compiler_rt old_cmake < <(source mingw-w64-cross-compiler-rt/PKGBUILD && getsums)
-IFS="|" read new_pkgver new_compiler_rt new_cmake < <(source "$1" && getsums)
+IFS="|" read old_pkgver old_compiler_rt old_cmake old_third_party < <(source mingw-w64-cross-compiler-rt/PKGBUILD && getsums)
+IFS="|" read new_pkgver new_compiler_rt new_cmake new_third_party < <(source "$1" && getsums)
 
-sed -i -e "s|^pkgver=$old_pkgver|pkgver=$new_pkgver|" -e "s|'$old_compiler_rt'|'$new_compiler_rt'|" -e "s|'$old_cmake'|'$new_cmake'|" mingw-w64-cross-compiler-rt/PKGBUILD mingw-w64-cross-clang/PKGBUILD
+sed -i -e "s|^pkgver=$old_pkgver|pkgver=$new_pkgver|" -e "s|'$old_compiler_rt'|'$new_compiler_rt'|" -e "s|'$old_cmake'|'$new_cmake'|" -e "s|'$old_third_party'|'$new_third_party'|" mingw-w64-cross-compiler-rt/PKGBUILD mingw-w64-cross-clang/PKGBUILD
 if [[ "${old_pkgver}" != "${new_pkgver}" ]]; then
   sed -i -e 's|^pkgrel=[0-9]\+|pkgrel=1|' mingw-w64-cross-compiler-rt/PKGBUILD mingw-w64-cross-clang/PKGBUILD
 fi
